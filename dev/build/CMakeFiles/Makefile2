@@ -63,11 +63,13 @@ CMAKE_BINARY_DIR = /home/Avadik/Prog/SDR/dev/build
 # Directory level rules for the build root directory
 
 # The main recursive "all" target.
-all: CMakeFiles/main.dir/all
+all: CMakeFiles/tx.dir/all
+all: CMakeFiles/rx.dir/all
 .PHONY : all
 
 # The main recursive "codegen" target.
-codegen: CMakeFiles/main.dir/codegen
+codegen: CMakeFiles/tx.dir/codegen
+codegen: CMakeFiles/rx.dir/codegen
 .PHONY : codegen
 
 # The main recursive "preinstall" target.
@@ -75,40 +77,73 @@ preinstall:
 .PHONY : preinstall
 
 # The main recursive "clean" target.
-clean: CMakeFiles/main.dir/clean
+clean: CMakeFiles/tx.dir/clean
+clean: CMakeFiles/rx.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/main.dir
+# Target rules for target CMakeFiles/tx.dir
 
 # All Build rule for target.
-CMakeFiles/main.dir/all:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/depend
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/Avadik/Prog/SDR/dev/build/CMakeFiles --progress-num=1,2 "Built target main"
-.PHONY : CMakeFiles/main.dir/all
+CMakeFiles/tx.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/Avadik/Prog/SDR/dev/build/CMakeFiles --progress-num=3,4 "Built target tx"
+.PHONY : CMakeFiles/tx.dir/all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/main.dir/rule: cmake_check_build_system
+CMakeFiles/tx.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/Avadik/Prog/SDR/dev/build/CMakeFiles 2
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/main.dir/all
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/tx.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /home/Avadik/Prog/SDR/dev/build/CMakeFiles 0
-.PHONY : CMakeFiles/main.dir/rule
+.PHONY : CMakeFiles/tx.dir/rule
 
 # Convenience name for target.
-main: CMakeFiles/main.dir/rule
-.PHONY : main
+tx: CMakeFiles/tx.dir/rule
+.PHONY : tx
 
 # codegen rule for target.
-CMakeFiles/main.dir/codegen:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/Avadik/Prog/SDR/dev/build/CMakeFiles --progress-num=1,2 "Finished codegen for target main"
-.PHONY : CMakeFiles/main.dir/codegen
+CMakeFiles/tx.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/Avadik/Prog/SDR/dev/build/CMakeFiles --progress-num=3,4 "Finished codegen for target tx"
+.PHONY : CMakeFiles/tx.dir/codegen
 
 # clean rule for target.
-CMakeFiles/main.dir/clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/clean
-.PHONY : CMakeFiles/main.dir/clean
+CMakeFiles/tx.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/clean
+.PHONY : CMakeFiles/tx.dir/clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/rx.dir
+
+# All Build rule for target.
+CMakeFiles/rx.dir/all:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/depend
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/Avadik/Prog/SDR/dev/build/CMakeFiles --progress-num=1,2 "Built target rx"
+.PHONY : CMakeFiles/rx.dir/all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/rx.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/Avadik/Prog/SDR/dev/build/CMakeFiles 2
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/rx.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/Avadik/Prog/SDR/dev/build/CMakeFiles 0
+.PHONY : CMakeFiles/rx.dir/rule
+
+# Convenience name for target.
+rx: CMakeFiles/rx.dir/rule
+.PHONY : rx
+
+# codegen rule for target.
+CMakeFiles/rx.dir/codegen:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/codegen
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/Avadik/Prog/SDR/dev/build/CMakeFiles --progress-num=1,2 "Finished codegen for target rx"
+.PHONY : CMakeFiles/rx.dir/codegen
+
+# clean rule for target.
+CMakeFiles/rx.dir/clean:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/clean
+.PHONY : CMakeFiles/rx.dir/clean
 
 #=============================================================================
 # Special targets to cleanup operation of make.

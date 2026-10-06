@@ -117,41 +117,78 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named main
+# Target rules for targets named tx
 
 # Build rule for target.
-main: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 main
-.PHONY : main
+tx: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tx
+.PHONY : tx
 
 # fast build rule for target.
-main/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/build
-.PHONY : main/fast
+tx/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/build
+.PHONY : tx/fast
 
-main.o: main.cpp.o
-.PHONY : main.o
+#=============================================================================
+# Target rules for targets named rx
+
+# Build rule for target.
+rx: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 rx
+.PHONY : rx
+
+# fast build rule for target.
+rx/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/build
+.PHONY : rx/fast
+
+rx.o: rx.cpp.o
+.PHONY : rx.o
 
 # target to build an object file
-main.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.o
-.PHONY : main.cpp.o
+rx.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/rx.cpp.o
+.PHONY : rx.cpp.o
 
-main.i: main.cpp.i
-.PHONY : main.i
+rx.i: rx.cpp.i
+.PHONY : rx.i
 
 # target to preprocess a source file
-main.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.i
-.PHONY : main.cpp.i
+rx.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/rx.cpp.i
+.PHONY : rx.cpp.i
 
-main.s: main.cpp.s
-.PHONY : main.s
+rx.s: rx.cpp.s
+.PHONY : rx.s
 
 # target to generate assembly for a file
-main.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/main.cpp.s
-.PHONY : main.cpp.s
+rx.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/rx.cpp.s
+.PHONY : rx.cpp.s
+
+tx.o: tx.cpp.o
+.PHONY : tx.o
+
+# target to build an object file
+tx.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/tx.cpp.o
+.PHONY : tx.cpp.o
+
+tx.i: tx.cpp.i
+.PHONY : tx.i
+
+# target to preprocess a source file
+tx.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/tx.cpp.i
+.PHONY : tx.cpp.i
+
+tx.s: tx.cpp.s
+.PHONY : tx.s
+
+# target to generate assembly for a file
+tx.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/tx.cpp.s
+.PHONY : tx.cpp.s
 
 # Help Target
 help:
@@ -161,10 +198,14 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... main"
-	@echo "... main.o"
-	@echo "... main.i"
-	@echo "... main.s"
+	@echo "... rx"
+	@echo "... tx"
+	@echo "... rx.o"
+	@echo "... rx.i"
+	@echo "... rx.s"
+	@echo "... tx.o"
+	@echo "... tx.i"
+	@echo "... tx.s"
 .PHONY : help
 
 

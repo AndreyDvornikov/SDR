@@ -10,11 +10,10 @@ option(PLUTO_TIMESTAMP "Build pluto with timestamp" ON)
 # RF frontend driver
 find_package(SoapySDR REQUIRED)
 
-set(MAIN_SOURCE_FILES
-    main.cpp
-)
+# TX бинарь
+add_executable(tx tx.cpp)
+target_link_libraries(tx ${SoapySDR_LIBRARIES})
 
-# Добавляем исполняемый файл
-add_executable(main ${MAIN_SOURCE_FILES})
-
-target_link_libraries(main ${SoapySDR_LIBRARIES})
+# RX бинарь
+add_executable(rx rx.cpp)
+target_link_libraries(rx ${SoapySDR_LIBRARIES})

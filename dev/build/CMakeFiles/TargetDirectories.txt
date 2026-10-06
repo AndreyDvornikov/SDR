@@ -1,3 +1,4 @@
-/home/Avadik/Prog/SDR/dev/build/CMakeFiles/main.dir
+/home/Avadik/Prog/SDR/dev/build/CMakeFiles/tx.dir
+/home/Avadik/Prog/SDR/dev/build/CMakeFiles/rx.dir
 /home/Avadik/Prog/SDR/dev/build/CMakeFiles/edit_cache.dir
 /home/Avadik/Prog/SDR/dev/build/CMakeFiles/rebuild_cache.dir
