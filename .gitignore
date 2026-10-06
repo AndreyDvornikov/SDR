@@ -1,0 +1,31 @@
+# CMake / local build folders
+build/
+cmake-build-*/
+dev/build/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+
+# Binaries and object files
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.dylib
+*.exe
+
+# SDR captures: generated locally and can be very large
+*.pcm
+*.pcm.backup
+
+# Python helpers
+__pycache__/
+*.py[cod]
+.venv/
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
