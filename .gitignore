@@ -15,6 +15,7 @@ Makefile
 *.dll
 *.dylib
 *.exe
+*.pcm
 
 # SDR captures: generated locally and can be very large
 *.pcm
