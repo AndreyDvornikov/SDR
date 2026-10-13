@@ -117,78 +117,41 @@ depend:
 .PHONY : depend
 
 #=============================================================================
-# Target rules for targets named tx
+# Target rules for targets named sdr
 
 # Build rule for target.
-tx: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 tx
-.PHONY : tx
+sdr: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 sdr
+.PHONY : sdr
 
 # fast build rule for target.
-tx/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/build
-.PHONY : tx/fast
+sdr/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdr.dir/build.make CMakeFiles/sdr.dir/build
+.PHONY : sdr/fast
 
-#=============================================================================
-# Target rules for targets named rx
-
-# Build rule for target.
-rx: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 rx
-.PHONY : rx
-
-# fast build rule for target.
-rx/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/build
-.PHONY : rx/fast
-
-rx.o: rx.cpp.o
-.PHONY : rx.o
+main.o: main.cpp.o
+.PHONY : main.o
 
 # target to build an object file
-rx.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/rx.cpp.o
-.PHONY : rx.cpp.o
+main.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdr.dir/build.make CMakeFiles/sdr.dir/main.cpp.o
+.PHONY : main.cpp.o
 
-rx.i: rx.cpp.i
-.PHONY : rx.i
-
-# target to preprocess a source file
-rx.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/rx.cpp.i
-.PHONY : rx.cpp.i
-
-rx.s: rx.cpp.s
-.PHONY : rx.s
-
-# target to generate assembly for a file
-rx.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/rx.dir/build.make CMakeFiles/rx.dir/rx.cpp.s
-.PHONY : rx.cpp.s
-
-tx.o: tx.cpp.o
-.PHONY : tx.o
-
-# target to build an object file
-tx.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/tx.cpp.o
-.PHONY : tx.cpp.o
-
-tx.i: tx.cpp.i
-.PHONY : tx.i
+main.i: main.cpp.i
+.PHONY : main.i
 
 # target to preprocess a source file
-tx.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/tx.cpp.i
-.PHONY : tx.cpp.i
+main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdr.dir/build.make CMakeFiles/sdr.dir/main.cpp.i
+.PHONY : main.cpp.i
 
-tx.s: tx.cpp.s
-.PHONY : tx.s
+main.s: main.cpp.s
+.PHONY : main.s
 
 # target to generate assembly for a file
-tx.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/tx.dir/build.make CMakeFiles/tx.dir/tx.cpp.s
-.PHONY : tx.cpp.s
+main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/sdr.dir/build.make CMakeFiles/sdr.dir/main.cpp.s
+.PHONY : main.cpp.s
 
 # Help Target
 help:
@@ -198,14 +161,10 @@ help:
 	@echo "... depend"
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
-	@echo "... rx"
-	@echo "... tx"
-	@echo "... rx.o"
-	@echo "... rx.i"
-	@echo "... rx.s"
-	@echo "... tx.o"
-	@echo "... tx.i"
-	@echo "... tx.s"
+	@echo "... sdr"
+	@echo "... main.o"
+	@echo "... main.i"
+	@echo "... main.s"
 .PHONY : help
 
 
