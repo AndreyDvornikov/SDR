@@ -34,7 +34,7 @@ def add_plot(axis, path: Path) -> None:
 
 
 def main() -> None:
-    files = [Path("txdata.pcm"), Path("rxdata.pcm")]
+    files = [Path("../pcms/txdata.pcm"), Path("../pcms/rxdata.pcm")]
     missing = [str(path) for path in files if not path.exists()]
     if missing:
         raise SystemExit(f"Не найдены файлы: {', '.join(missing)}")
