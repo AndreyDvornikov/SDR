@@ -53,7 +53,10 @@ SoapySDRDevice *make_device()
 {
     SoapySDRKwargs args = {};
     SoapySDRKwargs_set(&args, "driver", "plutosdr");
-    SoapySDRKwargs_set(&args, "uri", "usb:");
+    // The Pluto USB IIO interface can be claimed by another USB client.
+    // Its RNDIS interface is exposed by the same USB cable and keeps the
+    // control/data connection independent of raw libusb ownership.
+    SoapySDRKwargs_set(&args, "uri", "ip:192.168.2.1");
     SoapySDRKwargs_set(&args, "loopback", "0");
     SoapySDRDevice *sdr = SoapySDRDevice_make(&args);
     SoapySDRKwargs_clear(&args);
