@@ -59,11 +59,38 @@ std::vector<T> upsample(const std::vector<T>& symbols, size_t factor) {
     return samples;
 }
 
+template <typename T>
+std::vector<T> convolution(const std::vector<T>& samples) {
+    std::vector<float> h(4, 1.0f);
+    std::vector<T> signal;
+
+    if (samples.empty()) {
+        return signal;
+    }
+
+    signal.reserve(samples.size() + h.size() - 1);
+
+    for (std::size_t n = 0; n < samples.size() + h.size() - 1; ++n) {
+        T sum{};
+
+        for (std::size_t k = 0; k < samples.size(); ++k) {
+            if (n >= k && n - k < h.size()) {
+                sum += samples[k] * h[n - k];
+            }
+        }
+
+        signal.push_back(sum);
+    }
+
+    return signal;
+}
+
 int main() {
     auto bits = generate_bits(16);
     auto sym = qpsk(bits);
     auto samples = upsample(sym, 4);
-    for (auto s : samples) {
+    auto signal = convolution(samples);
+    for (auto s : signal) {
         std::cout << s << " ";
     }
     std::cout << "\n";
