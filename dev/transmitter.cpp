@@ -43,15 +43,28 @@ std::vector<std::complex<float>> qpsk(const std::vector<bool>& bits) {
     return sym;
 }
 
+template <typename T>
+std::vector<T> upsample(const std::vector<T>& symbols, size_t factor) {
+    std::vector<T> samples;
+    samples.reserve(symbols.size() * factor);
+
+    for (const auto& symbol : symbols) {
+        samples.push_back(symbol);
+
+        for (size_t i = 1; i < factor; ++i) {
+            samples.push_back(T{});
+        }
+    }
+
+    return samples;
+}
+
 int main() {
     auto bits = generate_bits(16);
     auto sym = qpsk(bits);
-    for (bool bit : bits) {
-        std::cout << bit;
+    auto samples = upsample(sym, 4);
+    for (auto s : samples) {
+        std::cout << s << " ";
     }
-    std::cout << '\n';
-    for (std::complex<float> s : sym) {
-        std::cout << s;
-    }
-    std::cout << '\n';
+    std::cout << "\n";
 }
