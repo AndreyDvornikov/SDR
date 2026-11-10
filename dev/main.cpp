@@ -1,18 +1,20 @@
 #include <SoapySDR/Device.h>
 #include <SoapySDR/Formats.h>
 
+#include <algorithm>
 #include <complex>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <random>
+#include <string>
 #include <vector>
 
 namespace {
 
 constexpr double SAMPLE_RATE = 1e6;
-constexpr double FREQUENCIES_HZ[] = {1000e6, 900e6};
+constexpr double FREQUENCIES_HZ[] = {800e6, 850e6};
 constexpr size_t FREQUENCY_COUNT =
     sizeof(FREQUENCIES_HZ) / sizeof(FREQUENCIES_HZ[0]);
 constexpr size_t TX_ITERATIONS = 1000000;
@@ -55,13 +57,13 @@ SoapySDRDevice *make_device() {
   SoapySDRKwargs args = {};
   SoapySDRKwargs_set(&args, "driver", "plutosdr");
   SoapySDRKwargs_set(&args, "uri", "usb:");
-  SoapySDRKwargs_set(&args, "loopback", "1");
+  SoapySDRKwargs_set(&args, "loopback", "0");
   SoapySDRDevice *sdr = SoapySDRDevice_make(&args);
   SoapySDRKwargs_clear(&args);
   return sdr;
 }
 
-std::vector<bool> generate_bits(int size) {
+[[maybe_unused]] std::vector<bool> generate_bits(int size) {
   std::vector<bool> bits(size);
 
   std::mt19937 rng(std::random_device{}());
@@ -74,7 +76,20 @@ std::vector<bool> generate_bits(int size) {
   return bits;
 }
 
-std::vector<float> bpsk(const std::vector<bool> &bits) {
+std::vector<bool> string_to_bits(const std::string &str) {
+  std::vector<bool> bits;
+  bits.reserve(str.size() * 8);
+
+  for (unsigned char c : str) {
+    for (int i = 7; i >= 0; --i) {
+      bits.push_back((c >> i) & 1);
+    }
+  }
+
+  return bits;
+}
+
+[[maybe_unused]] std::vector<float> bpsk(const std::vector<bool> &bits) {
   std::vector<float> sym;
   sym.reserve(bits.size());
 
@@ -118,8 +133,9 @@ std::vector<T> upsample(const std::vector<T> &symbols, size_t factor) {
 }
 
 template <typename T>
-std::vector<T> convolution(const std::vector<T> &samples) {
-  std::vector<float> h(4, 1.0f);
+std::vector<T> convolution(const std::vector<T> &samples, size_t h_size = 10,
+                           float scale = 1.0f) {
+  std::vector<float> h(h_size, 1.0f * scale);
   std::vector<T> signal;
 
   if (samples.empty()) {
@@ -162,17 +178,20 @@ int run_tx(SoapySDRDevice *sdr, double frequency) {
   }
 
   const size_t mtu = SoapySDRDevice_getStreamMTU(sdr, stream);
-  std::vector<int16_t> buffer(2 * mtu);
-  auto bits = generate_bits(32);
-  auto sym = qpsk(bits);
-  auto samples = upsample(sym, 10);
-  auto signal = convolution(samples);
-  for (size_t n = 0; n < mtu; ++n) {
-    const auto sample = n < signal.size() ? signal[n] : std::complex<float>{};
 
-    buffer[2 * n] = static_cast<int16_t>(sample.real());
-    buffer[2 * n + 1] = static_cast<int16_t>(sample.imag());
-  }
+  auto bits = string_to_bits("SIBGUTI_IKS431");
+  auto sym = qpsk(bits);
+  constexpr size_t UPSAMPLE_FACTOR = 10;
+  auto samples = upsample(sym, UPSAMPLE_FACTOR);
+  auto signal = convolution(samples, UPSAMPLE_FACTOR, 1.0f);
+
+  constexpr float TX_AMPLITUDE = 2000.0f;
+  constexpr size_t TS_SAMPLES = 6;
+  const size_t sig_samples = signal.size();
+  const size_t block_samples = TS_SAMPLES + sig_samples;
+
+  std::vector<int16_t> active_buffer(2 * mtu, 0);
+  std::vector<int16_t> zero_buffer(2 * mtu, 0);
 
   FILE *file = std::fopen("txdata.pcm", "wb");
   if (!file) {
@@ -188,23 +207,71 @@ int run_tx(SoapySDRDevice *sdr, double frequency) {
   } else {
     const long long base_time = SoapySDRDevice_getHardwareTime(sdr, nullptr);
     constexpr long long STEP_NS = 4LL * 1000 * 1000;
+    constexpr long long SILENCE_OFFSET_NS = 1920LL * 1000;
     std::printf("TX: %.0f МГц, MTU: %zu\n", frequency / 1e6, mtu);
+
     for (size_t iteration = 0; iteration < TX_ITERATIONS; ++iteration) {
       const long long tx_time =
           base_time + static_cast<long long>(iteration + 1) * STEP_NS;
-      buffer[0] = buffer[1] = static_cast<int16_t>(0xffff);
-      buffer[10] = buffer[11] = static_cast<int16_t>(0xffff);
-      for (size_t i = 0; i < 8; ++i) {
-        const uint8_t byte = static_cast<uint8_t>((tx_time >> (8 * i)) & 0xff);
-        buffer[2 + i] = static_cast<int16_t>(byte << 4);
+
+      std::fill(active_buffer.begin(), active_buffer.end(), 0);
+      for (size_t b = 0; b < 3; ++b) {
+        size_t sample_offset = b * block_samples;
+        if (sample_offset + block_samples > mtu) {
+          break;
+        }
+
+        size_t i16_offset = 2 * sample_offset;
+
+        // Преамбула 0xFFFF
+        active_buffer[i16_offset + 0] = static_cast<int16_t>(0xffff);
+        active_buffer[i16_offset + 1] = static_cast<int16_t>(0xffff);
+
+        // 8 байт времени tx_time
+        for (size_t i = 0; i < 8; ++i) {
+          const uint8_t byte =
+              static_cast<uint8_t>((tx_time >> (8 * i)) & 0xff);
+          active_buffer[i16_offset + 2 + i] = static_cast<int16_t>(byte << 4);
+        }
+
+        // Маркер конца таймстемпа 0xFFFF
+        active_buffer[i16_offset + 10] = static_cast<int16_t>(0xffff);
+        active_buffer[i16_offset + 11] = static_cast<int16_t>(0xffff);
+
+        // Отсчёты сигнала
+        size_t sig_start = sample_offset + TS_SAMPLES;
+        for (size_t s = 0; s < sig_samples; ++s) {
+          active_buffer[2 * (sig_start + s)] =
+              static_cast<int16_t>(signal[s].real() * TX_AMPLITUDE);
+          active_buffer[2 * (sig_start + s) + 1] =
+              static_cast<int16_t>(signal[s].imag() * TX_AMPLITUDE);
+        }
       }
-      std::fwrite(buffer.data(), sizeof(int16_t), buffer.size(), file);
-      const void *buffers[] = {buffer.data()};
+
+      // Передаем активный буфер
+      std::fwrite(active_buffer.data(), sizeof(int16_t), active_buffer.size(),
+                  file);
+      const void *active_buffers[] = {active_buffer.data()};
       int flags = SOAPY_SDR_HAS_TIME;
-      const int written = SoapySDRDevice_writeStream(
-          sdr, stream, buffers, mtu, &flags, tx_time, STREAM_TIMEOUT_US);
+      int written = SoapySDRDevice_writeStream(
+          sdr, stream, active_buffers, mtu, &flags, tx_time, STREAM_TIMEOUT_US);
       if (written < 0) {
-        std::printf("TX ошибка: %d (%s)\n", written,
+        std::printf("TX ошибка (активный): %d (%s)\n", written,
+                    SoapySDRDevice_lastError());
+        result = EXIT_FAILURE;
+        break;
+      }
+
+      // 2. Передаем буфер тишины (нули)
+      const long long zero_time = tx_time + SILENCE_OFFSET_NS;
+      std::fwrite(zero_buffer.data(), sizeof(int16_t), zero_buffer.size(),
+                  file);
+      const void *zero_buffers[] = {zero_buffer.data()};
+      flags = SOAPY_SDR_HAS_TIME;
+      written = SoapySDRDevice_writeStream(
+          sdr, stream, zero_buffers, mtu, &flags, zero_time, STREAM_TIMEOUT_US);
+      if (written < 0) {
+        std::printf("TX ошибка (тишина): %d (%s)\n", written,
                     SoapySDRDevice_lastError());
         result = EXIT_FAILURE;
         break;
@@ -256,12 +323,32 @@ int run_rx(SoapySDRDevice *sdr, double frequency) {
       long long time_ns = 0;
       const int received = SoapySDRDevice_readStream(
           sdr, stream, buffers, mtu, &flags, &time_ns, STREAM_TIMEOUT_US);
-      if (received > 0)
-        std::fwrite(buffer.data(), 2 * sizeof(int16_t),
-                    static_cast<size_t>(received), file);
-      else if (received < 0)
+      if (received > 0) {
+        std::vector<std::complex<float>> rx_samples;
+        rx_samples.reserve(received);
+        for (int i = 0; i < received; ++i) {
+          rx_samples.emplace_back(static_cast<float>(buffer[2 * i]),
+                                  static_cast<float>(buffer[2 * i + 1]));
+        }
+
+        // Согласованный фильтр с нормировкой на длину (10)
+        auto filtered = convolution(rx_samples, 10, 0.1f);
+
+        std::vector<int16_t> conv_buffer(2 * filtered.size());
+        for (size_t i = 0; i < filtered.size(); ++i) {
+          const float r = filtered[i].real();
+          const float im = filtered[i].imag();
+          conv_buffer[2 * i] =
+              static_cast<int16_t>(std::clamp(r, -32768.0f, 32767.0f));
+          conv_buffer[2 * i + 1] =
+              static_cast<int16_t>(std::clamp(im, -32768.0f, 32767.0f));
+        }
+        std::fwrite(conv_buffer.data(), sizeof(int16_t), conv_buffer.size(),
+                    file);
+      } else if (received < 0) {
         std::printf("RX ошибка: %d (%s)\n", received,
                     SoapySDRDevice_lastError());
+      }
     }
     SoapySDRDevice_deactivateStream(sdr, stream, 0, 0);
   }

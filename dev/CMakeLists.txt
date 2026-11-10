@@ -14,8 +14,10 @@ find_package(SoapySDR REQUIRED)
 add_executable(main main.cpp)
 target_link_libraries(main ${SoapySDR_LIBRARIES})
 
-add_executable(loopback main_lb.cpp)
-target_link_libraries(loopback ${SoapySDR_LIBRARIES})
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/main_lb.cpp")
+    add_executable(loopback main_lb.cpp)
+    target_link_libraries(loopback ${SoapySDR_LIBRARIES})
+endif()
 
 add_executable(tr transmitter.cpp)
 target_link_libraries(tr ${SoapySDR_LIBRARIES})
