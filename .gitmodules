@@ -1,0 +1,13 @@
+[submodule "submodules/libiio"]
+	path = submodules/libiio
+	url = https://github.com/TelecomDep/libiio.git
+[submodule "submodules/libad9361-iio"]
+	path = submodules/libad9361-iio
+	url = https://github.com/TelecomDep/libad9361-iio.git
+[submodule "submodules/SoapySDR"]
+	path = submodules/SoapySDR
+	url = https://github.com/TelecomDep/SoapySDR.git
+[submodule "submodules/SoapyPlutoSDR"]
+	path = submodules/SoapyPlutoSDR
+	url = https://github.com/TelecomDep/SoapyPlutoSDR.git
+	branch = sdr_gadget_timestamping
