@@ -11,3 +11,9 @@
 	path = submodules/SoapyPlutoSDR
 	url = https://github.com/TelecomDep/SoapyPlutoSDR.git
 	branch = sdr_gadget_timestamping
+[submodule "dev/submodules/imgui"]
+	path = dev/submodules/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "dev/submodules/implot"]
+	path = dev/submodules/implot
+	url = https://github.com/epezent/implot.git
