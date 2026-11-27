@@ -60,6 +60,9 @@ public:
     void get_spectrum(std::vector<float>& out_freq, std::vector<float>& out_power);
     void get_tx_spectrum(std::vector<float>& out_freq, std::vector<float>& out_power);
     void get_waterfall(const float** out_data, size_t* out_w, size_t* out_h);
+    void get_sync_data(std::vector<float>& out_s_curve, size_t& out_best_tau,
+                       std::vector<std::vector<float>>& out_tau_i,
+                       std::vector<std::vector<float>>& out_tau_q);
 
     // Сброс буферов и истории
     void clear_buffers();
@@ -96,6 +99,10 @@ private:
     std::vector<float> latest_power_spectrum_;
     std::vector<float> latest_tx_freq_axis_;
     std::vector<float> latest_tx_power_spectrum_;
+    std::vector<float> latest_s_curve_;
+    size_t latest_best_tau_{5};
+    std::vector<std::vector<float>> latest_tau_i_{10};
+    std::vector<std::vector<float>> latest_tau_q_{10};
 
     // CFO compensation state for RX
     float rx_cfo_phase_{0.0f};

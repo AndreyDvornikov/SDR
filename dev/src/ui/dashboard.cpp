@@ -29,7 +29,14 @@ DashboardUI::DashboardUI(SDRController& controller)
 
 void DashboardUI::update_persistence() {
     std::vector<float> rx_i, rx_q;
-    controller_.get_rx_constellation(rx_i, rx_q, 512);
+    if (controller_.get_source() == SignalSource::PCMFile && !controller_.get_pcm_player().is_playing()) {
+        controller_.get_rx_constellation(rx_i, rx_q, 512);
+        persist_rx_i_ = std::move(rx_i);
+        persist_rx_q_ = std::move(rx_q);
+        return;
+    }
+
+    controller_.get_new_rx_symbols(rx_i, rx_q, 512);
 
     if (!rx_i.empty()) {
         persist_rx_i_.insert(persist_rx_i_.end(), rx_i.begin(), rx_i.end());
@@ -88,6 +95,9 @@ void DashboardUI::render() {
         case DashboardTab::SdrControlsAndSettings:
             render_tab_sdr_controls();
             break;
+        case DashboardTab::SymbolSync:
+            render_tab_symbol_sync();
+            break;
     }
 
     ImGui::EndChild();
@@ -113,10 +123,11 @@ void DashboardUI::render_top_bar() {
     const char* label2 = (win_w > 1150.0f) ? " Сравнение TX/RX " : " TX / RX ";
     const char* label3 = (win_w > 1150.0f) ? " Спектр & Водопад " : " Спектр ";
     const char* label4 = (win_w > 1150.0f) ? " Настройки SDR " : " Настройки ";
+    const char* label5 = (win_w > 1150.0f) ? " Символьная синхра " : " Синхра ";
 
     ImGui::SameLine();
     float avail = ImGui::GetContentRegionAvail().x;
-    float tab_bar_width = (win_w > 1150.0f) ? 620.0f : 460.0f;
+    float tab_bar_width = (win_w > 1150.0f) ? 790.0f : 560.0f;
     if (avail > tab_bar_width) {
         ImGui::SameLine(win_w - tab_bar_width - 16.0f);
     }
@@ -145,6 +156,7 @@ void DashboardUI::render_top_bar() {
     nav_tab(label2, DashboardTab::TxRxCompare);
     nav_tab(label3, DashboardTab::SpectrumAndWaterfall);
     nav_tab(label4, DashboardTab::SdrControlsAndSettings);
+    nav_tab(label5, DashboardTab::SymbolSync);
 }
 
 void DashboardUI::render_playback_deck() {
@@ -463,6 +475,37 @@ void DashboardUI::render_tab_channel_iq() {
     ImGui::Separator();
     ImGui::Spacing();
 
+    bool is_playing_now = !(controller_.get_source() == SignalSource::PCMFile && !controller_.get_pcm_player().is_playing());
+    ImGui::TextColored(ThemeColors::TextPrimary, "Символьная синхронизация:");
+    if (ImGui::Checkbox("АВТО ГАРДНЕР", &cfg.auto_symbol_sync)) {
+        cfg_changed = true;
+        if (is_playing_now) {
+            persist_rx_i_.clear();
+            persist_rx_q_.clear();
+        }
+    }
+    std::vector<float> s_curve;
+    size_t best_tau = 5;
+    std::vector<std::vector<float>> dummy_i, dummy_q;
+    controller_.get_sync_data(s_curve, best_tau, dummy_i, dummy_q);
+    if (cfg.auto_symbol_sync) {
+        ImGui::TextColored(ThemeColors::SuccessGreen, "Оптимальное tau: %zu", best_tau);
+    } else {
+        int strobe_val = static_cast<int>(cfg.strobe_phase);
+        if (ImGui::SliderInt("Фаза (tau)", &strobe_val, 0, 9)) {
+            cfg.strobe_phase = static_cast<size_t>(strobe_val);
+            cfg_changed = true;
+            if (is_playing_now) {
+                persist_rx_i_.clear();
+                persist_rx_q_.clear();
+            }
+        }
+    }
+
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
     // Компенсатор частотного сдвига CFO
     ImGui::TextColored(ThemeColors::TextPrimary, "Сдвиг гетеродина (CFO):");
     if (draw_glow_slider("CFO (Гц)", &cfg.rx_cfo_hz, -2500.0f, 2500.0f, "%.1f Гц", ThemeColors::PrimaryAccent)) {
@@ -475,6 +518,7 @@ void DashboardUI::render_tab_channel_iq() {
         cfg.rx_cfo_hz = -1696.25f;
         cfg.rx_cfo_correction = true;
         cfg_changed = true;
+        controller_.clear_buffers();
         persist_rx_i_.clear();
         persist_rx_q_.clear();
     }
@@ -482,6 +526,9 @@ void DashboardUI::render_tab_channel_iq() {
         cfg.rx_cfo_hz = 0.0f;
         cfg.rx_cfo_correction = false;
         cfg_changed = true;
+        controller_.clear_buffers();
+        persist_rx_i_.clear();
+        persist_rx_q_.clear();
     }
 
     ImGui::Spacing();
@@ -846,6 +893,108 @@ void DashboardUI::render_tab_sdr_controls() {
 
     if (cfg_changed) {
         controller_.set_config(cfg);
+    }
+}
+
+void DashboardUI::render_tab_symbol_sync() {
+    SDRConfig cfg = controller_.get_config();
+    bool cfg_changed = false;
+
+    std::vector<float> s_curve;
+    size_t best_tau = 5;
+    std::vector<std::vector<float>> tau_i;
+    std::vector<std::vector<float>> tau_q;
+    controller_.get_sync_data(s_curve, best_tau, tau_i, tau_q);
+
+    float full_w = ImGui::GetContentRegionAvail().x;
+    float full_h = ImGui::GetContentRegionAvail().y;
+
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ThemeColors::CardBg);
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 12.0f);
+    ImGui::BeginChild("SyncHeaderBar", ImVec2(full_w, 48.0f), true);
+
+    if (ImGui::Checkbox("Автосинхронизация (Гарднер)", &cfg.auto_symbol_sync)) {
+        cfg_changed = true;
+    }
+
+    ImGui::SameLine(0, 20.0f);
+    if (cfg.auto_symbol_sync) {
+        ImGui::BeginDisabled();
+    }
+    int strobe_val = static_cast<int>(cfg.strobe_phase);
+    ImGui::PushItemWidth(180.0f);
+    if (ImGui::SliderInt("Фаза строба (tau)", &strobe_val, 0, 9)) {
+        cfg.strobe_phase = static_cast<size_t>(strobe_val);
+        cfg_changed = true;
+    }
+    ImGui::PopItemWidth();
+    if (cfg.auto_symbol_sync) {
+        ImGui::EndDisabled();
+    }
+
+    ImGui::SameLine(0, 24.0f);
+    ImGui::TextColored(ThemeColors::SuccessGreen, "Оптимальное tau: %zu", best_tau);
+
+    ImGui::EndChild();
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
+
+    if (cfg_changed) {
+        controller_.set_config(cfg);
+    }
+
+    ImGui::Spacing();
+
+    float grid_h = full_h - 58.0f;
+    float card_w = (full_w - 40.0f) / 5.0f;
+    float card_h = (grid_h - 10.0f) / 2.0f;
+    auto ref = dsp::get_reference_constellation(cfg.modulation);
+
+    for (size_t tau = 0; tau < 10; ++tau) {
+        bool is_best = (tau == best_tau);
+        bool is_manual = (!cfg.auto_symbol_sync && tau == (cfg.strobe_phase % 10));
+        bool has_border = is_best || is_manual;
+
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ThemeColors::CardBg);
+        ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 12.0f);
+        if (has_border) {
+            ImGui::PushStyleColor(ImGuiCol_Border, is_best ? ThemeColors::SuccessGreen : ThemeColors::BorderActive);
+            ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 2.5f);
+        }
+
+        char card_id[32];
+        std::snprintf(card_id, sizeof(card_id), "TauCard_%zu", tau);
+        ImGui::BeginChild(card_id, ImVec2(card_w, card_h), true);
+
+        ImVec4 title_col = is_best ? ThemeColors::SuccessGreen : (is_manual ? ThemeColors::PrimaryAccent : ThemeColors::TextPrimary);
+        ImGui::TextColored(title_col, "tau = %zu", tau);
+        if (tau < s_curve.size()) {
+            ImGui::SameLine();
+            ImGui::TextColored(ThemeColors::TextSecondary, "|  e = %.3f", s_curve[tau]);
+        }
+
+        float avail_w = ImGui::GetContentRegionAvail().x;
+        float avail_h = ImGui::GetContentRegionAvail().y;
+        float scope_dim = std::min(avail_w, avail_h);
+
+        char plot_id[32];
+        std::snprintf(plot_id, sizeof(plot_id), "TauScope_%zu", tau);
+        const std::vector<float>& vec_i = (tau < tau_i.size()) ? tau_i[tau] : std::vector<float>{};
+        const std::vector<float>& vec_q = (tau < tau_q.size()) ? tau_q[tau] : std::vector<float>{};
+        draw_radar_constellation(plot_id, vec_i, vec_q, ref, ImVec2(scope_dim, scope_dim));
+
+        ImGui::EndChild();
+
+        if (has_border) {
+            ImGui::PopStyleVar();
+            ImGui::PopStyleColor();
+        }
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor();
+
+        if (tau % 5 != 4) {
+            ImGui::SameLine(0, 10.0f);
+        }
     }
 }
 

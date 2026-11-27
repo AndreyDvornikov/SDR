@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     int initial_tab = 0;
     const char* screenshot_path = nullptr;
+    const char* pcm_path = nullptr;
     int target_frames = 60;
     bool start_fullscreen = false;
 
@@ -57,6 +58,8 @@ int main(int argc, char* argv[]) {
             initial_tab = std::atoi(argv[++i]);
         } else if (std::strcmp(argv[i], "--screenshot") == 0 && i + 1 < argc) {
             screenshot_path = argv[++i];
+        } else if (std::strcmp(argv[i], "--pcm") == 0 && i + 1 < argc) {
+            pcm_path = argv[++i];
         } else if (std::strcmp(argv[i], "--fullscreen") == 0) {
             start_fullscreen = true;
         } else if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) {
@@ -115,9 +118,12 @@ int main(int argc, char* argv[]) {
 
     // Initialize SDR Controller and UI
     sdr::SDRController controller;
+    if (pcm_path) {
+        controller.load_pcm_file(pcm_path);
+    }
     sdr::ui::DashboardUI dashboard(controller);
 
-    if (initial_tab >= 0 && initial_tab <= 3) {
+    if (initial_tab >= 0 && initial_tab <= 4) {
         dashboard.set_active_tab(static_cast<sdr::ui::DashboardTab>(initial_tab));
     }
 

@@ -38,6 +38,7 @@ set(CORE_SOURCES
     src/dsp/modulation.cpp
     src/dsp/filters.cpp
     src/dsp/fft.cpp
+    src/dsp/sync.cpp
     src/sdr/pcm_player.cpp
     src/sdr/sdr_soapy.cpp
     src/sdr/sdr_controller.cpp

@@ -45,6 +45,8 @@ struct SDRConfig {
     bool rx_matched_filter = true;  // Согласованный фильтр (прямоугольная свёртка)
     bool rx_cfo_correction = true;  // Компенсатор вращения частоты (CFO)
     float rx_cfo_hz = -1696.25f;    // Сдвиг гетеродина Pluto (-1696.25 Гц)
+    bool auto_symbol_sync = true;
+    size_t strobe_phase = 5;
 };
 
 struct SDRMetrics {
